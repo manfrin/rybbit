@@ -11,10 +11,12 @@ import { LanguageSwitcher } from "../../../../components/LanguageSwitcher";
 import { Badge } from "../../../../components/ui/badge";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../../components/ui/select";
 import { Switch } from "../../../../components/ui/switch";
 import { useActiveOrgName } from "../../../../hooks/useActiveOrgName";
 import { validateEmail } from "../../../../lib/auth-utils";
 import { IS_CLOUD } from "../../../../lib/const";
+import { useStore } from "../../../../lib/store";
 import { DangerRow, DangerZone, LedgerRow, LedgerRows, LedgerSaveBar, LedgerSection } from "../../components/Ledger";
 import { ApiKeyManager } from "./ApiKeyManager";
 import { ChangePassword } from "./ChangePassword";
@@ -29,6 +31,8 @@ export function AccountInner() {
   const hasActiveSubscription = useHasActiveSubscription();
   const orgName = useActiveOrgName();
   const t = useExtracted();
+  const compactFrom = useStore(state => state.compactFrom);
+  const setCompactFrom = useStore(state => state.setCompactFrom);
 
   const user = session.data?.user;
   const currentName = user?.name ?? "";
@@ -247,6 +251,24 @@ export function AccountInner() {
           )}
           <LedgerRow label={t("Language")} description={t("For menus and labels.")}>
             <LanguageSwitcher />
+          </LedgerRow>
+          <LedgerRow label={t("Abbreviate numbers")} description={t("Smaller numbers are shown in full.")}>
+            <Select value={String(compactFrom)} onValueChange={value => setCompactFrom(Number(value))}>
+              <SelectTrigger
+                aria-label={t("Abbreviate numbers")}
+                className="w-auto text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white focus:ring-0"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[1_000, 10_000, 100_000, 1_000_000].map(from => (
+                  <SelectItem key={from} value={String(from)}>
+                    {t("From {number}", { number: from.toLocaleString() })}
+                  </SelectItem>
+                ))}
+                <SelectItem value={String(Number.MAX_SAFE_INTEGER)}>{t("Never")}</SelectItem>
+              </SelectContent>
+            </Select>
           </LedgerRow>
         </LedgerRows>
       </LedgerSection>

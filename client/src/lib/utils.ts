@@ -3,14 +3,20 @@ import { Duration } from "luxon";
 import { twMerge } from "tailwind-merge";
 import { generateName } from "../components/Avatar";
 import { userLocale } from "./dateTimeUtils";
+import { useStore } from "./store";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const formatter = Intl.NumberFormat(userLocale, {
-  notation: "compact",
-}).format;
+const compact = Intl.NumberFormat(userLocale, { notation: "compact" }).format;
+const full = Intl.NumberFormat(userLocale, { maximumFractionDigits: 0 }).format;
+
+// Compact notation always abbreviates from 1,000; the user's setting moves that point up.
+export const formatter = (value: number | bigint) => {
+  const abs = value < 0 ? -value : value;
+  return abs >= 1000 && abs < useStore.getState().compactFrom ? full(value) : compact(value);
+};
 
 export function formatSecondsAsMinutesAndSeconds(value: number) {
   const duration = Duration.fromMillis(value * 1000);

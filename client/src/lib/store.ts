@@ -65,9 +65,12 @@ type Store = {
   setSegmentId: (segmentId: number | null) => void;
   timezone: string;
   setTimezone: (timezone: string) => void;
+  /** Numbers below this are shown in full; from it up they are abbreviated (12K). */
+  compactFrom: number;
+  setCompactFrom: (compactFrom: number) => void;
 };
 
-type PersistedStore = Pick<Store, "timezone">;
+type PersistedStore = Pick<Store, "timezone" | "compactFrom">;
 
 const getUrlParams = () => (typeof window !== "undefined" ? new URLSearchParams(globalThis.location.search) : null);
 
@@ -152,10 +155,12 @@ export const useStore = create<Store, [["zustand/persist", PersistedStore]]>(
           set({ timezone: newTimezone });
         }
       },
+      compactFrom: 1000,
+      setCompactFrom: compactFrom => set({ compactFrom }),
     }),
     {
       name: "rybbit-store",
-      partialize: state => ({ timezone: state.timezone }),
+      partialize: state => ({ timezone: state.timezone, compactFrom: state.compactFrom }),
     }
   )
 );
